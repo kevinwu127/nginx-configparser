@@ -1,33 +1,8 @@
+#include <sstream>
+#include <string>
+
 #include "gtest/gtest.h"
 #include "config_parser.h"
-
-TEST(NginxConfigParserTest, SimpleConfig) {
-  NginxConfigParser parser;
-  NginxConfig out_config;
-
-  bool success = parser.Parse("example_config", &out_config);
-
-  EXPECT_TRUE(success);
-}
-
-/*
- *   Tests Full Example Configuration from: 
- *   https://www.nginx.com/resources/wiki/start/topics/examples/full/
- */
-
-TEST(NginxConfigParserTest, FullConfig) {
-  NginxConfigParser parser;
-  NginxConfig out_config;
-
-  bool success = parser.Parse("nginx.conf", &out_config);
-
-  EXPECT_TRUE(success);
-}
-
-/*
- *    In-class test methods
- *    
- */
 
 // Tests that the NginxConfigStatement handles tokens correctly
 TEST(NginxConfigTest, ToString) {
@@ -44,6 +19,9 @@ class NginxStringConfigTest : public ::testing::Test {
         bool ParseString(const std::string config_string) {
             std::stringstream config_stream(config_string);
             return parser_.Parse(&config_stream, &out_config_);
+        }
+        bool ParseFile(const char* file_name) {
+            return parser_.Parse(file_name, &out_config_);
         }
         NginxConfigParser parser_;
         NginxConfig out_config_;
@@ -64,21 +42,34 @@ TEST_F(NginxStringConfigTest, InvalidConfig) {
 
 // Tests one nested config
 TEST_F(NginxStringConfigTest, Nested) {
-    EXPECT_TRUE(ParseString("damm { foo bar; }"));
+    EXPECT_TRUE(ParseString("baz { foo bar; }"));
 }
 
 // Tests 2+ nested configs
 TEST_F(NginxStringConfigTest, DoubleNested) {
-  EXPECT_TRUE(ParseString("damm { azim { foo bar; } }"));
+  EXPECT_TRUE(ParseString("qux { baz { foo bar; } }"));
 }
 
 // Tests missing end brace
 TEST_F(NginxStringConfigTest, MissingEndBrace) {
-    EXPECT_FALSE(ParseString("damm { azim { foo bar; } "));
+    EXPECT_FALSE(ParseString("qux { baz { foo bar; } "));
 }
 
 // Tests missing start brace
 TEST_F(NginxStringConfigTest, MissingStartBrace) {
-    EXPECT_FALSE(ParseString("damm { azim { foo bar; } } }"));
+    EXPECT_FALSE(ParseString("qux { baz { foo bar; } } }"));
+}
+
+// Original test
+TEST_F(NginxStringConfigTest, SimpleConfig) {
+  EXPECT_TRUE(ParseFile("example_config"));
+}
+
+/*
+ *   Tests Full Example Configuration from: 
+ *   https://www.nginx.com/resources/wiki/start/topics/examples/full/
+ */
+TEST_F(NginxStringConfigTest, FullConfig) {
+  EXPECT_TRUE(ParseFile("nginx.conf"));
 }
 
