@@ -60,6 +60,11 @@ TEST_F(NginxStringConfigTest, MissingStartBrace) {
     EXPECT_FALSE(ParseString("qux { baz { foo bar; } } }"));
 }
 
+// Empty context considered to be invalid
+TEST_F(NginxStringConfigTest, EmptyContext) {
+    EXPECT_FALSE(ParseString("foo {}"));
+}
+
 // Original test
 TEST_F(NginxStringConfigTest, SimpleConfig) {
   EXPECT_TRUE(ParseFile("example_config"));
